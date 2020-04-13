@@ -136,8 +136,7 @@ if __name__ == "__main__":
             for row in reader:
                 print(row[1])
                 # 账号被锁定
-                num = int(row[0])
-                # 看不见的客人
-                if num >= 66:
-                    spider(row[1], row[2])
-                    # break
+                # num = int(row[0])
+                # if num >= 250:
+                spider(row[1], row[2])
+                break

@@ -54,4 +54,29 @@
 
 - 豆瓣需要登陆才能查看200条评论之后的短评，[参考了这篇博客](https://blog.csdn.net/u014044812/article/details/96484905)
 
-- getSubjects.py用来获取豆瓣Top250电影的url，main.py用于从网上获取影评数据
+- 爬虫/getSubjects.py用来获取豆瓣Top250电影的url，爬虫/main.py用于从网上获取影评数据
+
+## 自然语言预处理
+
+- 对影评进行了如下处理：删去了没有打分的评论、过滤英文部分、所含网站和表情符号
+
+- 如何删去影评中的表情符号，[参考了这篇博客](https://segmentfault.com/a/1190000007594620)
+
+- 一个问题：选的是Top250，一星二星的影评太少了
+
+- 从[Wiki中文语料库](https://link.zhihu.com/?target=https%3A//dumps.wikimedia.org/zhwiki/latest/zhwiki-latest-pages-articles.xml.bz2)获得zhwiki-latest-pages-articles.xml.bz2，用[wikiextractor](https://link.zhihu.com/?target=https%3A//github.com/attardi/wikiextractor)解压语料文本到AA文件夹。
+```
+git clone https://github.com/attardi/wikiextractor wikiextractor
+cd wikiextractor
+# 应该是html格式
+python WikiExtractor.py -b 1024M -o extracted zhwiki-latest-pages-articles.xml.bz2
+# 形成json格式
+python WikiExtractor -o extracted --process 2 -b 2048M --json zhwiki-latest-pages-articles.xml.bz2
+```
+
+- 用[opencc](https://github.com/BYVoid/OpenCC)繁体转简体，使用参照了[这篇博客](https://clay-atlas.com/blog/2019/09/24/python-chinese-tutorial-opencc/)
+```
+pip install opencc-python-reimplemented
+```
+
+- 使用jieba分词后，去掉停用词和标点符号，再使用word2vec训练词向量（[停用词表](https://github.com/goto456/stopwords)）
