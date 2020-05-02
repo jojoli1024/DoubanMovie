@@ -1,6 +1,5 @@
 import csv
 import re
-import emoji
 from opencc import OpenCC
 import json
 import jieba
@@ -25,6 +24,7 @@ def delEmoji(str):
 
 # 从movies.csv中提出打分和影评，并初步处理影评
 # 除去影评的英文部分和表情和所含网站
+# 除去过短影评，防止切词后为空词列表
 def getComment():
     file = open('../csv文件/comments.csv', 'w', encoding='utf-8', newline='')
     writer = csv.writer(file)
@@ -48,11 +48,8 @@ def getComment():
             # 过滤网址
             comment = re.sub(r'(https|http)?:\/\/(\w|\.|\/|\?|\=|\&|\%)*\b', '', comment)
             # 过滤英文
-            # comment = '，'.join(re.findall(r'[0-9\u4e00-\u9fa5]+', comment))
             comment = re.sub(r"[A-Za-z\!\,\.\"\ \'\:\’\n\t\～\~\/\?\(\)\>\<\_\-\^\←\●\★\☆]", '', comment)
             # 去掉表情符号
-            # comment = emoji.demojize(comment)
-            # comment = re.sub(u'[\U00010000-\U0010ffff]', '', comment)
             comment = delEmoji(comment)
             #繁体转简体
             cc = OpenCC('t2s')
@@ -60,8 +57,9 @@ def getComment():
             # 判断处理后的评论是否有中文
             if not zh_pattern.search(comment):
                 continue
-            # elif count == 500:
-            #     break
+            # 切词后为空，除掉过短影评
+            if remove_pun_and_stopWords(comment)=='\n':
+                continue
             data_row = [rank, comment]
             writer.writerow(data_row)
             print(str(count) + '\t' + comment)
@@ -92,8 +90,9 @@ def remove_pun_and_stopWords(line):
             stopword_set.add(stopword.strip('\n'))
     # print(stopword_set)
     # 去掉标点符号
-    punctuation = re.compile(r"[A-Za-z0-9\n-~!@#$%^&*()_+`=\[\]\\\{\}\"|;':,./<>?·！@#￥%……&*（）——+【】、；‘：“”，。、《》？「『」』]")
+    punctuation = re.compile(r"[A-Za-z0-9\n-~!@#$%^&*()_+`=\[\]\\\{\}\"|;':,./<>?·！∩@#￥%……&*（）——+【】、；‘：“”，。、《》？「『」』]")
     line = punctuation.sub('', line)
+    line = delEmoji(line)
     words = jieba.cut(line, cut_all = False)
     newline = ''
     for word in words:
@@ -101,7 +100,7 @@ def remove_pun_and_stopWords(line):
             newline += word + ' '
     return newline + '\n'
 
-# 获得切词后的comments数据
+# 获得切词后的comments数据，存至comments.txt
 def cut_comments():
     out_file = open('comments.txt', 'w', encoding='utf-8')
     commentPath = '../csv文件/comments.csv'
@@ -111,15 +110,12 @@ def cut_comments():
         next(reader)
         count = 1
         for row in reader:
-            # if count < 10:
             comment = row[1]
             print(str(count) + '\t' + comment)
             comment = remove_pun_and_stopWords(comment)
             print(str(count) + '\t' + comment)
             out_file.write(comment)
             count += 1
-            # else:
-            #     break
     out_file.close()
 
 # 获得切词后的wiki数据
@@ -128,15 +124,16 @@ def cut_wiki():
     out_file = open('wiki.txt', 'w', encoding='utf-8')
     with open(wikiPath, 'r', encoding='utf-8') as file:
         line = file.readline()
-        # i = 5
+        i = 0
         while(line):
+            if i % 5000 == 0:
+                print("Review %d " % i)
             text = json.loads(line)['text']
-            print(line)
-            # print(text)
+            # print(line)
             text = remove_pun_and_stopWords(text)
-            print(text)
+            # print(text)
             out_file.write(text)
-            # i -= 1
+            i += 1
             line = file.readline()
     out_file.close()
 

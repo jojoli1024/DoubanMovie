@@ -74,9 +74,32 @@ python WikiExtractor.py -b 1024M -o extracted zhwiki-latest-pages-articles.xml.b
 python WikiExtractor -o extracted --process 2 -b 2048M --json zhwiki-latest-pages-articles.xml.bz2
 ```
 
-- 用[opencc](https://github.com/BYVoid/OpenCC)繁体转简体，使用参照了[这篇博客](https://clay-atlas.com/blog/2019/09/24/python-chinese-tutorial-opencc/)
+- 用[opencc](https://github.com/BYVoid/OpenCC)繁体转简体，使用[参照了这篇博客](https://clay-atlas.com/blog/2019/09/24/python-chinese-tutorial-opencc/)
 ```
 pip install opencc-python-reimplemented
 ```
 
 - 使用jieba分词后，去掉停用词和标点符号，再使用word2vec训练词向量（[停用词表](https://github.com/goto456/stopwords)）
+
+## 词向量
+
+- 使用gensim的word2vec包，[参数说明](https://blog.csdn.net/szlcw1/article/details/52751314)
+
+## 朴素贝叶斯分类器
+
+- 将comments.csv分为train_data.csv和test_data.csv，使用sklearn.model_selection的train_test_split
+
+- 在sklearn中，提供了3中朴素贝叶斯分类算法：GaussianNB(高斯朴素贝叶斯)、MultinomialNB(多项式朴素贝叶斯)、BernoulliNB(伯努利朴素贝叶斯)，先试用了多项式朴素贝叶斯。
+
+- 词向量模型训练好后，把train_data.csv的影评导入模型中，先把每个影评切词得该影评得一系列词列表，把在词列表里且在模型的所有词向量求平均值，用这个平均值代表这个影评。如下图：
+![训练文本怎么使用词向量](https://github.com/jojoli1024/picture_for_md/raw/master/img/训练文本如何使用词向量.png)
+
+- 一个问题，影评太短，切词后，词列表为空！（comments.csv处理添加一步：小于6个汉字影评删去）
+
+## 结果
+
+|word2vec模型|K折交叉验证|得分|测试集得分|
+|:--:|:--:|:--:|:--:|
+|影评|5|0.70306|0.67775|
+|影评|10|0.70144||
+|影评+wiki|5|0.67206||
