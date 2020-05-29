@@ -5,9 +5,10 @@ from sklearn.naive_bayes import GaussianNB as GNB
 from sklearn.linear_model import LogisticRegression as LR
 from sklearn.ensemble import RandomForestClassifier as RF
 
-from sklearn.metrics import accuracy_score,f1_score,roc_auc_score
+from sklearn.metrics import accuracy_score,f1_score,roc_auc_score,auc,roc_curve,plot_roc_curve
 
 from dataProcess import remove_pun_and_stopWords
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -85,6 +86,9 @@ def naive_bayes(train_data_features,label,test_data_features,y_true):
     print("高斯贝叶斯分类器10折交叉验证得分：",score)  
     y_pred = model_NB.predict(test_data_features)
     get_result(y_true,y_pred)
+    plot_roc_curve(model_NB, test_data_features, y_true)
+    plt.show()
+
 
 def linear_model(train_data_features,label,test_data_features,y_true):
     model_LR = LR(max_iter=1000)
@@ -136,5 +140,5 @@ if __name__ == "__main__":
     test_data_features = getAvgFeatureVecs(test_x,model_wv,num_features)
     
     naive_bayes(train_data_features,label,test_data_features,test_y)
-    linear_model(train_data_features,label,test_data_features,test_y)
-    random_forest(train_data_features,label,test_data_features,test_y)
+    # linear_model(train_data_features,label,test_data_features,test_y)
+    # random_forest(train_data_features,label,test_data_features,test_y)
